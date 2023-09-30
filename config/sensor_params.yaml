@@ -1,0 +1,12 @@
+sensehat:
+    ros__parameters:
+        en_imu: True
+        en_mag: True
+        en_pressure: True
+        en_humidity: True
+        en_temp: True
+        en_joy: True
+        en_color: False
+        frame_id: sensehat_frame
+        timer_period: 0.02
+        joy_once: True
