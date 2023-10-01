@@ -5,7 +5,7 @@ sensehat:
         en_pressure: True
         en_humidity: True
         en_temp: True
-        en_joy: True
+        en_joy: False
         en_color: False
         frame_id: sensehat_frame
         timer_period: 0.02

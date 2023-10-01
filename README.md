@@ -18,53 +18,52 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 
 Some notes:
 1. The IMU needs a calibration file for accurate and reliable results. This needs to be saved in the default calibration file location as defined in the [python-sense-hat](https://github.com/astro-pi/python-sense-hat) library: ```~/.config/sense_hat/RTIMULib.ini```. This default location cannot be changed.
-2. This node only reads the sensors and buttons and publishes data as ROS 2 topics. This node does not touch the LED matrix at all, it is controlled using a separate node.
-3. Each publisher uses the [Sensor Data QoS profile](https://docs.ros.org/en/rolling/Concepts/About-Quality-of-Service-Settings.html#qos-profiles) as default.
-4. This implementation is designed as a lifecycle component and can be run individually as well.
+2. There is a weird issue with the joystick, where it triggers some LEDs (and they stay on) in the matrix corner that is closest to the joystick. The LEDs that are turned on can be overwritten by displaying an image on the matrix, or only the specific pixels. 
+3. This node only sets the LED display during activation, but nothing is displayed once it is active. The LEDs triggered by the joystick are not corrected by this node. The triggered LEDs normally turn off on their own in about 30 seconds.
+4. Each publisher uses the [Sensor Data QoS profile](https://docs.ros.org/en/rolling/Concepts/About-Quality-of-Service-Settings.html#qos-profiles) as default.
+5. This implementation is designed as a lifecycle component and can be run individually as well.
 
 
-* ```sensehat_led_display```: This executable subscribes to several topics (like IMU and joystick messages from ```sensehat_publisher``` or elsewhere) and displays relevant measurements on the 8x8 LED matrix. This is still a work in progress.
+* ```sensehat_display_handler```: This executable provides a handler for displaying different images/animations based on different subscribed topics on the 8x8 LED matrix. This is still a work in progress.
 
-* ```sensehat_node```: This executable creates instances of ```sensehat_publisher``` and ```sensehat_led_display``` and runs them both using a single threaded executor. 
+* ```sensehat_node```: This executable creates instances of ```sensehat_publisher``` and ```sensehat_display_handler``` and runs them both using a single threaded executor. 
 
 * ```sensehat_launch.py```: This is the launch file that launches ```sensehat_node``` as a  lifecycle node, loads its parameters, and then configures and activates it. The lifecycle node is first initialized, then set to 'configure' from the launch file. When the 'inactive' state is reached, the registered event handler activates the node. This launch file has the following arguments:
     * ```ns```: Namespace of the system (default: ```''```)
     * ```frame_id```: Frame ID of the Sense HAT (default: ```sensehat_frame```)
+    * ```child_frame_id```: Frame ID of the link the Sense HAT is attached to (default: ```base_link```)
+    * ```pub_static_tf```: Enables Static Transform (frame_id -> base_link) Broadcast (default: ```True```)
 
 ## Parameters
 
-* ```odom_topic```: Odometry topic name (Default: odom)
-* ```timer_period```: Timer period in seconds (Default: 0.01)
-* ```sensor_timeout```: Sensor timeout in seconds in case of no movement, or sensor failure (Default: 1.0)
-* ```parent_frame```: Parent frame for the Odometry message and Transform (Default: odom)
-* ```child_frame```: Child frame for the Odometry message and transform (Default: base_link)
-* ```x_init```: Initial position in the X axis, in meters (Default: 0.0)
-* ```y_init```: Initial position in the Y axis, in meters (Default: 0.0)
-* ```z_height```: Height of the sensor from the ground, in meters (Default: 0.025)
-* ```board```: Sensor type - pmw3901 or paa5100 (Default: paa5100)
-* ```fov_deg```: FOV of the sensor aperture in degrees (Default: 42 for PMW3901/PAA5100)
-* ```res_px```: Resolution of the sensor in pixels, assuming the same value in both directions (Default: 35 for PMW3901/PAA5100)
-* ```scaler```: Scaling factor, i.e. the sensor value returned for 1 pixel move (Default: 5)
-* ```spi_nr```: SPI port number (Default: 0)
-* ```spi_slot```: SPI CS pin - front (BCM pin 7 on RPi) or back (BCM pin 8 on RPi) (Default: front)
-* ```rotation```: Rotation of the sensor in 90 degree increments - 0, 90, 180, 270 (Default: 270)
-* ```publish_tf```: Boolean value to turn transform publisher on/off (Default: true)
+* ```en_imu```: Enable IMU publisher - Gyroscope, Accelerometer, Magnetometer (Default: True)
+* ```en_mag```: Enable Magnetometer publisher (Default: ```True```)
+* ```en_pressure```: Enable Pressure publisher (Default: ```True```)
+* ```en_humidity```: Enable Humidity publisher (Default: ```True```)
+* ```en_joy```: Enable Joystick publisher (Default: ```False```)
+* ```en_color```: Enable Color publisher, if v2 (Default: ```False```)
+* ```frame_id```: Sense HAT Frame ID (Default: ```sensehat_frame```)
+* ```timer_period```: Time period of the Timer in seconds (Default: ```0.02```)
+* ```imu_transform```: Transform IMU coordinate system from NED to ENU (Default: ```True```)
+* ```joy_once```: If True, sets Joy output once when pressed. If False, sets Joy output continuously as the button is pressed. (Default: ```True```)
+* ```color_gain```:  Sets the sensitivity of the Color sensor [1, 4, 16, 60] (Default: ```60```)
+* ```color_int_cycles```: Sets the time that the the sensor takes between measuring the light times 2.4 milliseconds [1, 256] (Default: ```64```)
 
 ## How to use
 
 * Stack the Sense HAT on to the RPi GPIO 
 * Follow the [Raspberry Pi Setup](https://gist.github.com/adityakamath/63eacf890381f9428f822742d49255c8) and the [Sense HAT Setup](https://gist.github.com/adityakamath/897d1933b3fe9ec5b7d388aabb7de9ef), forked from the [EnvTrackerNode](https://github.com/J-Pai/EnvTrackerNode) repository (I made a copy just in case the documentation in this repo is updated) 
 * Clone this repository in a ROS 2 workspace. Check the ```sensor_params.yaml``` file in the config directory and ```sensehat_launch.py```, and make any necessary changes.
-* Calibrate the IMU using the [RTIMULibCal tool](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) ([RTIMULib](https://github.com/RPi-Distro/RTIMULib) must already be cloned to your device from the Sense HAT Setup steps from earlier). Follow the steps in the tool and generate a ```RTIMULib.ini``` calibration file. OR you can use my calibration file, which is located in the config folder.
+* Calibrate the IMU using the [RTIMULibCal tool](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) ([RTIMULib](https://github.com/RPi-Distro/RTIMULib) must already be cloned to your device from the Sense HAT Setup steps from earlier). Follow the [Hardware Calibration](https://www.raspberrypi.com/documentation/accessories/sense-hat.html#hardware-calibration) steps and generate a ```RTIMULib.ini``` calibration file. OR you can use my calibration file, which is located in the config folder.
 * Copy this calibration file to ```~/.config/sense_hat/RTIMULib.ini```. If this path does not exist, simply create it or run the launch file which will generate a default calibration file in this location.
 * Build the package and run the launch file: ```ros2 launch sensehat_ros sensehat_launch.py```
 * Launch arguments can be added like this: ```ros2 launch sensehat_ros sensehat_launch.py frame_id:='sensehat2'```
 
 ## Results
 
-This package was tested using a [Sense HAT v1](https://sense-emu.readthedocs.io/en/v1.0/api.html) and a Raspberry  Pi 4 (4GB) running ROS 2 Humble on Ubuntu22.04 with a real-time kernel. The following observations were made:
+This package was tested using a [Sense HAT v1](https://www.raspberrypi.com/documentation/accessories/sense-hat.html#introducing-the-sense-hat) and a Raspberry  Pi 4 (4GB) running [ROS 2 Humble on Ubuntu22.04 with a real-time kernel](https://github.com/ros-realtime/ros-realtime-rpi4-image). The following observations were made:
 * The output frequency of 50Hz was achieved with all sensors enabled
 * Humidity and Pressure sensors work as expected, including temperature measurements. Temperature readings are not ambient temperature, since the RPi also heats up - but both temperature readings were observed to be nearly identical.
-* IMU was calibrated using [RTIMULibCal](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) and the calibration file was copied to the default location: ```~/.config/sense_hat/RTIMULib.ini```
+* IMU was calibrated using [RTIMULibCal](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) and the calibration file was copied to the default location: ```~/.config/sense_hat/RTIMULib.ini```. This works as expected with reliable results.
 * Only 1 of the 5 buttons of the Joystick work - but I have used the Sense HAT roughly in the past, so I guess it is human error, not a software bug
-* The Joystick button that works (right button), also triggers some LEDs in the corner of the matrix (the corner closest to the joystick). I don't think it is human error this time, it could be a software bug
+* The Joystick button that works (right button), also triggers some LEDs in the corner of the matrix (the corner closest to the joystick). I don't think it is human error this time. These LEDs stay on for about 30 seconds and turn off on their own. 

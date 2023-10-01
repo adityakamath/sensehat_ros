@@ -38,8 +38,20 @@ def generate_launch_description():
         default_value='sensehat_frame',
         description='Frame ID of the Sense HAT')
 
+    child_frame_arg = DeclareLaunchArgument(
+        name='child_frame_id',
+        default_value='base_link',
+        description='Frame ID of the Sense HAT link')
+
+    #static_tf_arg = DeclareLaunchArgument(
+    #    name='publish_static_tf',
+    #    default_value=True,
+    #    description='Publish static transform frame_id -> child_frame_id')
+        
     ld.add_action(ns_arg)
     ld.add_action(frame_id_arg)
+    ld.add_action(child_frame_arg)
+    #ld.add_action(static_tf_arg)
 
     # launch lifecycle node
     sensehat_node = LifecycleNode(
@@ -78,7 +90,7 @@ def generate_launch_description():
         executable='static_transform_publisher',
         name='sensehat_base_link_tf',
         output='screen',
-        arguments=['0', '0', '0', '0', '0', '0', LaunchConfiguration('frame_id'), 'base_link'])  # Adjust the transform as needed
+        arguments=['0', '0', '0', '0', '0', '0', LaunchConfiguration('frame_id'), LaunchConfiguration('child_frame_id')])  # Adjust the transform as needed
 
     ld.add_action(sensehat_tf)
 

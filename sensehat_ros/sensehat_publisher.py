@@ -26,6 +26,16 @@ from sensor_msgs.msg import Imu, Temperature, MagneticField, Joy, FluidPressure 
 from std_msgs.msg import Header, ColorRGBA
 from sense_hat import SenseHat
 
+# define some colours
+R = (255, 0, 0) # red
+G = (0, 255, 0) # green
+B = (0, 0, 255) # blue
+W = (255, 255, 255) # white
+C = (0, 255, 255) # cyan
+Y = (255, 255, 0) # yellow
+M = (255, 0, 255) # magenta
+O = (0, 0, 0) # off
+
 class SenseHatPublisher(Node):
     def __init__(self, node_name='sensehat'):
         super().__init__(node_name)
@@ -66,28 +76,32 @@ class SenseHatPublisher(Node):
             ('imu', Imu),
             ('mag', MagneticField),
             ('pressure', Pressure),
-            ('humidity', Humidity),
             ('temp_p', Temperature),
+            ('humidity', Humidity),
             ('temp_h', Temperature),
             ('joy', Joy),
             ('color', ColorRGBA),
         ]
         self._joy_mapping = ['up', 'down', 'left', 'right', 'middle']
         self._time = self.get_clock().now().to_msg()
-        self._sensehat = None
+        self._sensehat = SenseHat()
+        self._sensehat.set_rotation(180)
         
         self.get_logger().info('Initialized')
+        self._sensehat.show_message('Init', text_colour=R)
+        self._sensehat.clear()
 
     def timer_callback(self):
         self._time = self.get_clock().now().to_msg()
         
-        for pub_name, msg_type in self._pub_info:
+        for index, (pub_name, msg_type) in enumerate(self._pub_info):
             # check if publisher exists and is activated
             if getattr(self, f'_{pub_name}_pub', None) and getattr(self, f'_{pub_name}_pub', None).is_activated:
                 
                 # create sensor message and populate header message 
                 # (except for color message type which doesn't have a header field)
                 sensor_msg = msg_type()
+                
                 if pub_name != 'color':
                     sensor_msg.header = Header(stamp = self._time, frame_id = self.get_parameter('frame_id').value)
 
@@ -158,20 +172,15 @@ class SenseHatPublisher(Node):
                     elif pub_name == 'color':
                         sensor._sensehat.color.gain = self.get_parameter('color_gain').value
                         sensor._sensehat.color.integration_cycles = self.get_parameter('color_int_cycles').value
-                        sensor_msg = self._sensehat.color.color
 
                     # publish message
                     getattr(self, f'_{pub_name}_pub', None).publish(sensor_msg)
                     
                 except OSError:
-                    self.get_logger().info(f'Failed to initialize sensor for {pub_name} data.') 
+                    self.get_logger().info(f'Failed to initialize sensor for {pub_name} data.')
 
     def on_configure(self, state: State) -> TransitionCallbackReturn:
         try:
-            # configure sensor
-            self._sensehat = SenseHat()
-            self._sensehat.set_imu_config(True, True, True) # set magnetometer, gyroscope, accelerometer to true on hardware
- 
             # read parameter server and set local variables (convention = l_{pub_name})
             l_imu = self.get_parameter('en_imu').value
             l_mag = self.get_parameter('en_mag').value
@@ -186,32 +195,41 @@ class SenseHatPublisher(Node):
             # if temperature is enabled but both humidity and pressure sensors are disabled, issue warning
             if l_temp and not l_pressure and not l_humidity:
                 self.get_logger().warn('Warning: Temperature enabled but Humidity/Pressure sensors disabled. Enable at least one to publish Temperature.')
-
-            # create publishers if relevant parameter values are set
-            for pub_name, msg_type in self._pub_info:
-                if locals().get(f'l_{pub_name}'):
-                    setattr(self, f'_{pub_name}_pub', self.create_lifecycle_publisher(msg_type, pub_name, qos_profile=qos_profile_sensor_data))
+            
+            # configure sensor
+            self._sensehat.set_imu_config(True, True, True) # set magnetometer, gyroscope, accelerometer to true on hardware
 
             # create timer
             self._timer = self.create_timer(self.get_parameter('timer_period').value, self.timer_callback)
 
+            # create publishers
+            for pub_name, msg_type in self._pub_info:
+                if locals().get(f'l_{pub_name}'):
+                    setattr(self, f'_{pub_name}_pub', self.create_lifecycle_publisher(msg_type, pub_name, qos_profile=qos_profile_sensor_data))
+            
             self.get_logger().info('Configured')
+            self._sensehat.show_message('Config', text_colour=Y)
+            self._sensehat.clear()
             return TransitionCallbackReturn.SUCCESS
             
         except (OSError):
             self.get_logger().info('Configuration Failure: Unable to access Sense HAT')
+            self._sensehat.show_message('Fail', text_colour=W, back_colour=R)
+            self._sensehat.clear()
             return TransitionCallbackReturn.FAILURE
 
     def on_activate(self, state: State) -> TransitionCallbackReturn:
         self.get_logger().info('Activated')
+        self._sensehat.show_message('Active', text_colour=G)
+        self._sensehat.clear()
         return super().on_activate(state)
 
-    def on_deactivate(self, state: State) -> TransitionCallbackReturn:
-        self.get_logger().info('Deactivated')
+    def on_deactivate(self, state: State) -> TransitionCallbackReturn:      
+        self.get_logger().info('Deactivate')
         return super().on_deactivate(state)
 
     def on_cleanup(self, state: State) -> TransitionCallbackReturn:
-        self.terminate()
+        self.terminate()      
         self.get_logger().info('Clean Up Successful')
         return TransitionCallbackReturn.SUCCESS
 
@@ -220,7 +238,7 @@ class SenseHatPublisher(Node):
         self.get_logger().info('Shut Down Successful')
         return TransitionCallbackReturn.SUCCESS
         
-    def terminate(self):
+    def terminate(self):        
         # destroy timer
         if self._timer is not None:
             self._timer.cancel()
