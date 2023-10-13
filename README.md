@@ -16,14 +16,6 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
     * ```/joy```: 5-button joystick readings as an array of buttons - [sensor_msgs/msg/Joy](https://docs.ros2.org/foxy/api/sensor_msgs/msg/Joy.html) message type
     * ```/color```: Color sensor readings in the form of RGBA, each in the range [0, 256] - [std_msgs/msg/ColorRGBA](https://docs.ros2.org/foxy/api/std_msgs/msg/ColorRGBA.html) message type
 
-Some notes:
-1. The IMU needs a calibration file for accurate and reliable results. This needs to be saved in the default calibration file location as defined in the [python-sense-hat](https://github.com/astro-pi/python-sense-hat) library: ```~/.config/sense_hat/RTIMULib.ini```. This default location cannot be changed.
-2. There is a weird issue with the joystick, where it triggers some LEDs (and they stay on) in the matrix corner that is closest to the joystick. The LEDs that are turned on can be overwritten by displaying an image on the matrix, or only the specific pixels. 
-3. This node only sets the LED display during activation, but nothing is displayed once it is active. The LEDs triggered by the joystick are not corrected by this node. The triggered LEDs normally turn off on their own in about 30 seconds.
-4. Each publisher uses the [Sensor Data QoS profile](https://docs.ros.org/en/rolling/Concepts/About-Quality-of-Service-Settings.html#qos-profiles) as default.
-5. This implementation is designed as a lifecycle component and can be run individually as well.
-
-
 * ```sensehat_display_handler```: This executable provides a handler for displaying different images/animations based on different subscribed topics on the 8x8 LED matrix. This is still a work in progress.
 
 * ```sensehat_node```: This executable creates instances of ```sensehat_publisher``` and ```sensehat_display_handler``` and runs them both using a single threaded executor. 
@@ -58,12 +50,3 @@ Some notes:
 * Copy this calibration file to ```~/.config/sense_hat/RTIMULib.ini```. If this path does not exist, simply create it or run the launch file which will generate a default calibration file in this location.
 * Build the package and run the launch file: ```ros2 launch sensehat_ros sensehat_launch.py```
 * Launch arguments can be added like this: ```ros2 launch sensehat_ros sensehat_launch.py frame_id:='sensehat2'```
-
-## Results
-
-This package was tested using a [Sense HAT v1](https://www.raspberrypi.com/documentation/accessories/sense-hat.html#introducing-the-sense-hat) and a Raspberry  Pi 4 (4GB) running [ROS 2 Humble on Ubuntu22.04 with a real-time kernel](https://github.com/ros-realtime/ros-realtime-rpi4-image). The following observations were made:
-* The output frequency of 50Hz was achieved with all sensors enabled
-* Humidity and Pressure sensors work as expected, including temperature measurements. Temperature readings are not ambient temperature, since the RPi also heats up - but both temperature readings were observed to be nearly identical.
-* IMU was calibrated using [RTIMULibCal](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) and the calibration file was copied to the default location: ```~/.config/sense_hat/RTIMULib.ini```. This works as expected with reliable results.
-* Only 1 of the 5 buttons of the Joystick work - but I have used the Sense HAT roughly in the past, so I guess it is human error, not a software bug
-* The Joystick button that works (right button), also triggers some LEDs in the corner of the matrix (the corner closest to the joystick). I don't think it is human error this time. These LEDs stay on for about 30 seconds and turn off on their own. 
