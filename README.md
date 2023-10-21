@@ -28,7 +28,7 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 
 ## Parameters
 
-* ```en_imu```: Enable IMU publisher - Gyroscope, Accelerometer, Magnetometer (Default: True)
+* ```en_imu```: Enable IMU publisher - Gyroscope, Accelerometer, Magnetometer (Default: ```True```)
 * ```en_mag```: Enable Magnetometer publisher (Default: ```True```)
 * ```en_pressure```: Enable Pressure publisher (Default: ```True```)
 * ```en_humidity```: Enable Humidity publisher (Default: ```True```)
