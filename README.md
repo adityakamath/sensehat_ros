@@ -43,7 +43,7 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 
 ## How to use
 
-* Stack the Sense HAT on to the RPi GPIO 
+* Stack the Sense HAT onto the RPi GPIO 
 * Follow the [Raspberry Pi Setup](https://gist.github.com/adityakamath/63eacf890381f9428f822742d49255c8) and the [Sense HAT Setup](https://gist.github.com/adityakamath/897d1933b3fe9ec5b7d388aabb7de9ef), forked from the [EnvTrackerNode](https://github.com/J-Pai/EnvTrackerNode) repository (I made a copy just in case the documentation in this repo is updated) 
 * Clone this repository in a ROS 2 workspace. Check the ```sensor_params.yaml``` file in the config directory and ```sensehat_launch.py```, and make any necessary changes.
 * Calibrate the IMU using the [RTIMULibCal tool](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) ([RTIMULib](https://github.com/RPi-Distro/RTIMULib) must already be cloned to your device from the Sense HAT Setup steps from earlier). Follow the [Hardware Calibration](https://www.raspberrypi.com/documentation/accessories/sense-hat.html#hardware-calibration) steps and generate a ```RTIMULib.ini``` calibration file. OR you can use my calibration file, which is located in the config folder.

@@ -88,8 +88,6 @@ class SenseHatPublisher(Node):
         self._sensehat.set_rotation(180)
         
         self.get_logger().info('Initialized')
-        self._sensehat.show_message('Init', text_colour=R)
-        self._sensehat.clear()
 
     def timer_callback(self):
         self._time = self.get_clock().now().to_msg()
@@ -154,11 +152,11 @@ class SenseHatPublisher(Node):
 
                     # temperature from barometer
                     elif pub_name == 'temp_p':
-                        sensor_msg.temperature = self._sensehat.get_temperature_from_pressure() # degrees Celcius
+                        sensor_msg.temperature = float(self._sensehat.get_temperature_from_pressure()) # degrees Celcius
 
                     # temperature from hygrometer
                     elif pub_name == 'temp_h':
-                        sensor_msg.temperature = self._sensehat.get_temperature_from_humidity() # degrees Celcius
+                        sensor_msg.temperature = float(self._sensehat.get_temperature_from_humidity()) # degrees Celcius
 
                     # joystick button values
                     elif pub_name == 'joy':
@@ -208,20 +206,14 @@ class SenseHatPublisher(Node):
                     setattr(self, f'_{pub_name}_pub', self.create_lifecycle_publisher(msg_type, pub_name, qos_profile=qos_profile_sensor_data))
             
             self.get_logger().info('Configured')
-            self._sensehat.show_message('Config', text_colour=Y)
-            self._sensehat.clear()
             return TransitionCallbackReturn.SUCCESS
             
         except (OSError):
             self.get_logger().info('Configuration Failure: Unable to access Sense HAT')
-            self._sensehat.show_message('Fail', text_colour=W, back_colour=R)
-            self._sensehat.clear()
             return TransitionCallbackReturn.FAILURE
 
     def on_activate(self, state: State) -> TransitionCallbackReturn:
         self.get_logger().info('Activated')
-        self._sensehat.show_message('Active', text_colour=G)
-        self._sensehat.clear()
         return super().on_activate(state)
 
     def on_deactivate(self, state: State) -> TransitionCallbackReturn:      

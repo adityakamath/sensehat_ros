@@ -15,7 +15,7 @@
 from launch import LaunchDescription
 from launch.actions import EmitEvent, RegisterEventHandler, DeclareLaunchArgument
 from launch.events import matches_action
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import LifecycleNode, Node
 from launch_ros.event_handlers import OnStateTransition
 from launch_ros.events.lifecycle import ChangeState
@@ -25,8 +25,8 @@ from lifecycle_msgs.msg import Transition
 def generate_launch_description():
     ld = LaunchDescription()
     
-    sensehat_params_path = PathJoinSubstitution(
-        [FindPackageShare("sensehat_ros"), "config", "sensor_params.yaml"])
+    sensehat_config_path = PathJoinSubstitution(
+        [FindPackageShare("sensehat_ros"), "config", "sensehat_config.yaml"])
 
     ns_arg = DeclareLaunchArgument(
         name='ns',
@@ -43,15 +43,15 @@ def generate_launch_description():
         default_value='base_link',
         description='Frame ID of the Sense HAT link')
 
-    #static_tf_arg = DeclareLaunchArgument(
-    #    name='publish_static_tf',
-    #    default_value=True,
-    #    description='Publish static transform frame_id -> child_frame_id')
+    config_path_arg = DeclareLaunchArgument(
+        name='config_path',
+        default_value=sensehat_config_path,
+        description='Sense HAT configuration path')
         
     ld.add_action(ns_arg)
     ld.add_action(frame_id_arg)
     ld.add_action(child_frame_arg)
-    #ld.add_action(static_tf_arg)
+    ld.add_action(config_path_arg)
 
     # launch lifecycle node
     sensehat_node = LifecycleNode(
@@ -61,7 +61,7 @@ def generate_launch_description():
         namespace=LaunchConfiguration('ns'), 
         output='screen',
         parameters=[
-            sensehat_params_path,
+            LaunchConfiguration('config_path'),
             {'frame_id': LaunchConfiguration('frame_id')}]) # this overwrites the config file param
 
     # emit configure event
@@ -83,15 +83,5 @@ def generate_launch_description():
     ld.add_action(sensehat_node)
     ld.add_action(emit_configure_event)
     ld.add_action(register_activate_handler)
-
-    # publish the imu_frame to base_link transform
-    sensehat_tf = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='sensehat_base_link_tf',
-        output='screen',
-        arguments=['0', '0', '0', '0', '0', '0', LaunchConfiguration('frame_id'), LaunchConfiguration('child_frame_id')])  # Adjust the transform as needed
-
-    ld.add_action(sensehat_tf)
 
     return ld
