@@ -18,9 +18,10 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 
 * ```sensehat_display_handler```: This executable provides a handler for displaying different images/animations based on different subscribed topics on the 8x8 LED matrix. This is still a work in progress.
 
-* ```sensehat_node```: This executable creates instances of ```sensehat_publisher``` and ```sensehat_display_handler``` and runs them both using a single threaded executor. 
+* ```sensehat_node```: This executable creates instances of ```sensehat_publisher``` and ```sensehat_display_handler``` and runs them both using a multi threaded executor. 
 
-* ```sensehat_launch.py```: This is the launch file that launches ```sensehat_node``` as a  lifecycle node, loads its parameters, and then configures and activates it. The lifecycle node is first initialized, then set to 'configure' from the launch file. When the 'inactive' state is reached, the registered event handler activates the node. This launch file has the following arguments:
+* ```sensehat_launch.py```: This is the launch file that launches ```sensehat_node``` as a  lifecycle node, loads its parameters, and then configures and activates it. The lifecycle node is first initialized, and then set to 'configure' from the launch file. When the 'inactive' state is reached, the registered event handler activates the node. This launch file has the following arguments:
+
     * ```ns```: Namespace of the system (default: ```''```)
     * ```frame_id```: Frame ID of the Sense HAT (default: ```sensehat_frame```)
     * ```child_frame_id```: Frame ID of the link the Sense HAT is attached to (default: ```base_link```)

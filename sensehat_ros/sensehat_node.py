@@ -15,7 +15,7 @@
 import sys
 import rclpy
 from rclpy.executors import ExternalShutdownException
-from rclpy.executors import SingleThreadedExecutor
+from rclpy.executors import MultiThreadedExecutor
 from sensehat_ros.sensehat_publisher import SenseHatPublisher
 
 def main(args=None):
@@ -23,7 +23,7 @@ def main(args=None):
     try:
         sensehat_publisher = SenseHatPublisher(node_name='sensehat')
 
-        executor = SingleThreadedExecutor()
+        executor = MultiThreadedExecutor()
         executor.add_node(sensehat_publisher)
 
         try:

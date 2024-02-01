@@ -15,7 +15,7 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
-    install_requires=['setuptools', 'RTIMU', 'transforms3d', 'sense-hat'],
+    install_requires=['setuptools', 'RTIMULib', 'transforms3d', 'sense-hat'],
     zip_safe=True,
     maintainer='Aditya Kamath',
     maintainer_email='adityakamath@live.com',
