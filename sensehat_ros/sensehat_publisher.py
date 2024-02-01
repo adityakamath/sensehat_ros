@@ -26,16 +26,6 @@ from sensor_msgs.msg import Imu, Temperature, MagneticField, Joy, FluidPressure 
 from std_msgs.msg import Header, ColorRGBA
 from sense_hat import SenseHat
 
-# define some colours
-R = (255, 0, 0) # red
-G = (0, 255, 0) # green
-B = (0, 0, 255) # blue
-W = (255, 255, 255) # white
-C = (0, 255, 255) # cyan
-Y = (255, 255, 0) # yellow
-M = (255, 0, 255) # magenta
-O = (0, 0, 0) # off
-
 class SenseHatPublisher(Node):
     def __init__(self, node_name='sensehat'):
         super().__init__(node_name)
