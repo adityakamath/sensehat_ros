@@ -56,7 +56,7 @@ def generate_launch_description():
     # launch lifecycle node
     sensehat_node = LifecycleNode(
         package='sensehat_ros',
-        executable='sensehat_node',
+        executable='sensehat_publisher',
         name='sensehat',
         namespace=LaunchConfiguration('ns'), 
         output='screen',

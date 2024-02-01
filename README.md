@@ -1,7 +1,7 @@
 # sensehat_ros
 ROS 2 package for the Raspberry Pi [Sense HAT](https://www.raspberrypi.com/documentation/accessories/sense-hat.html) which includes an accelerometer, a gyroscope, a magnetometer, a barometric pressure sensor, a humidity sensor, a 5-button joystick and a 8x8 LED matrix. The [Sensor HAT v2](https://www.raspberrypi.com/products/sense-hat/) also includes a color and brightness sensor. This package provides support for both versions.
 
-Note: This implementation is a bit over-engineered, as I have been experimenting with ROS 2 [managed/lifecycle](https://design.ros2.org/articles/node_lifecycle.html) nodes, [executors](https://docs.ros.org/en/humble/Concepts/About-Executors.html#executors) and [composition](https://github.com/ros2/examples/blob/rolling/rclpy/executors/examples_rclpy_executors/composed.py) using Python.
+Note: This implementation is a bit over-engineered, as I have been experimenting with ROS 2 [managed/lifecycle](https://design.ros2.org/articles/node_lifecycle.html) nodes using Python.
 
 ## Implementation details
 
@@ -18,9 +18,7 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 
 * ```sensehat_display_handler```: This executable provides a handler for displaying different images/animations based on different subscribed topics on the 8x8 LED matrix. This is still a work in progress.
 
-* ```sensehat_node```: This executable creates instances of ```sensehat_publisher``` and ```sensehat_display_handler``` and runs them both using a multi threaded executor. 
-
-* ```sensehat_launch.py```: This is the launch file that launches ```sensehat_node``` as a  lifecycle node, loads its parameters, and then configures and activates it. The lifecycle node is first initialized, and then set to 'configure' from the launch file. When the 'inactive' state is reached, the registered event handler activates the node. This launch file has the following arguments:
+* ```sensehat_launch.py```: This is the launch file that launches ```sensehat_publisher``` as a  lifecycle node, loads its parameters, and then configures and activates it. The lifecycle node is first initialized, and then set to 'configure' from the launch file. When the 'inactive' state is reached, the registered event handler activates the node. This launch file has the following arguments:
 
     * ```ns```: Namespace of the system (default: ```''```)
     * ```frame_id```: Frame ID of the Sense HAT (default: ```sensehat_frame```)
@@ -50,4 +48,4 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 * Calibrate the IMU using the [RTIMULibCal tool](https://github.com/RPi-Distro/RTIMULib/tree/master/Linux/RTIMULibCal) ([RTIMULib](https://github.com/RPi-Distro/RTIMULib) must already be cloned to your device from the Sense HAT Setup steps from earlier). Follow the [Hardware Calibration](https://www.raspberrypi.com/documentation/accessories/sense-hat.html#hardware-calibration) steps and generate a ```RTIMULib.ini``` calibration file. OR you can use my calibration file, which is located in the config folder.
 * Copy this calibration file to ```~/.config/sense_hat/RTIMULib.ini```. If this path does not exist, simply create it or run the launch file which will generate a default calibration file in this location.
 * Build the package and run the launch file: ```ros2 launch sensehat_ros sensehat_launch.py```
-* Launch arguments can be added like this: ```ros2 launch sensehat_ros sensehat_launch.py frame_id:='sensehat2'```
+* Launch arguments can be added like this: ```ros2 launch sensehat_ros sensehat_launch.py frame_id:='sensehat'```
