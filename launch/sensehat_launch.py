@@ -38,11 +38,6 @@ def generate_launch_description():
         default_value='sensehat_frame',
         description='Frame ID of the Sense HAT')
 
-    child_frame_arg = DeclareLaunchArgument(
-        name='child_frame_id',
-        default_value='base_link',
-        description='Frame ID of the Sense HAT link')
-
     config_path_arg = DeclareLaunchArgument(
         name='config_path',
         default_value=sensehat_config_path,
@@ -50,7 +45,6 @@ def generate_launch_description():
         
     ld.add_action(ns_arg)
     ld.add_action(frame_id_arg)
-    ld.add_action(child_frame_arg)
     ld.add_action(config_path_arg)
 
     # launch lifecycle node
