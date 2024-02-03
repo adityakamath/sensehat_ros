@@ -22,7 +22,6 @@ Note: This implementation is a bit over-engineered, as I have been experimenting
 
     * ```ns```: Namespace of the system (default: ```''```)
     * ```frame_id```: Frame ID of the Sense HAT (default: ```sensehat_frame```)
-    * ```child_frame_id```: Frame ID of the link the Sense HAT is attached to (default: ```base_link```)
     * ```config_path```: Path to the config file, if called from another package/launch file (default: ```config/sensehat_config.yaml```)
 
 ## Parameters
