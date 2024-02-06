@@ -39,7 +39,6 @@ def generate_launch_description():
         description='Sense HAT configuration path')
         
     ld.add_action(ns_arg)
-    ld.add_action(frame_id_arg)
     ld.add_action(config_path_arg)
 
     # launch lifecycle node
