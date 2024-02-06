@@ -32,11 +32,6 @@ def generate_launch_description():
         name='ns',
         default_value='', # Do not change, else config params and remappings need to be updated
         description='Namespace of the system')
-        
-    frame_id_arg = DeclareLaunchArgument(
-        name='frame_id',
-        default_value='sensehat_frame',
-        description='Frame ID of the Sense HAT')
 
     config_path_arg = DeclareLaunchArgument(
         name='config_path',
@@ -54,9 +49,7 @@ def generate_launch_description():
         name='sensehat',
         namespace=LaunchConfiguration('ns'), 
         output='screen',
-        parameters=[
-            LaunchConfiguration('config_path'),
-            {'frame_id': LaunchConfiguration('frame_id')}]) # this overwrites the config file param
+        parameters=[LaunchConfiguration('config_path')])
 
     # emit configure event
     emit_configure_event = EmitEvent(
