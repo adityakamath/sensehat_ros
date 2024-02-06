@@ -102,18 +102,19 @@ class SenseHatPublisher(Node):
                         quat = quaternion_from_euler(orientation['roll'], orientation['pitch'], orientation['yaw'])
 
                         # Populate ENU messages according to REP-103. Convert from NED to ENU if needed.
+                        # Y axis values are negated in both cases as the Sense HAT IMU follows the left-hand coordinate system.
                         if self.get_parameter('imu_transform').value:
                             # Convert NED to ENU: 
                             #     body-fixed NED → ROS ENU: (x y z)→(x -y -z) or (x y z w)→(x -y -z w)
                             #     local      NED → ROS ENU: (x y z)→(y x -z)  or (x y z w)→(y x -z w)
-                            orientation = Quaternion(x=quat[1], y=quat[0], z=-quat[2], w=quat[3])
-                            ang_vel = Vector3(x=gyro_raw['y'], y=gyro_raw['x'], z=-gyro_raw['z'])
-                            lin_acc = Vector3(x=acc_raw['y']*9.81, y=acc_raw['x']*9.81, z=-acc_raw['z']*9.81) # convert from g to m/s^2
+                            orientation = Quaternion(x=-quat[1], y=quat[0], z=-quat[2], w=quat[3])
+                            ang_vel = Vector3(x=-gyro_raw['y'], y=gyro_raw['x'], z=-gyro_raw['z'])
+                            lin_acc = Vector3(x=-acc_raw['y']*9.81, y=acc_raw['x']*9.81, z=-acc_raw['z']*9.81) # convert from g to m/s^2
                         else:
                             # No conversion needed
-                            orientation = Quaternion(x=quat[0], y=quat[1], z=quat[2], w=quat[3])
-                            ang_vel = Vector3(x=gyro_raw['x'], y=gyro_raw['y'], z=gyro_raw['z'])
-                            lin_acc = Vector3(x=acc_raw['x']*9.81, y=acc_raw['y']*9.81, z=acc_raw['z']*9.81) # convert from g to m/s^2
+                            orientation = Quaternion(x=quat[0], y=-quat[1], z=quat[2], w=quat[3])
+                            ang_vel = Vector3(x=gyro_raw['x'], y=-gyro_raw['y'], z=gyro_raw['z'])
+                            lin_acc = Vector3(x=acc_raw['x']*9.81, y=-acc_raw['y']*9.81, z=acc_raw['z']*9.81) # convert from g to m/s^2
 
                         sensor_msg.orientation = orientation
                         sensor_msg.orientation_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
