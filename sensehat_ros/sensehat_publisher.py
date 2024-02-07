@@ -53,8 +53,7 @@ class SenseHatPublisher(Node):
                 ('en_joy', True),
                 ('en_color', True),
                 ('frame_id', 'sensehat_frame'),
-                ('timer_period', 0.02),  
-                ('imu_transform', True),
+                ('timer_period', 0.02),
                 ('joy_once', True),
                 ('color_gain', 60),
                 ('color_int_cycles', 64),
@@ -99,21 +98,12 @@ class SenseHatPublisher(Node):
                         gyro_raw = self._sensehat.get_gyroscope_raw() # Units: rad/s
                         acc_raw = self._sensehat.get_accelerometer_raw() # Units: g
                         orientation = self._sensehat.get_orientation_radians() # Euler angles: roll, pitch, yaw in radians
-                        quat = quaternion_from_euler(orientation['roll'], orientation['pitch'], orientation['yaw'])
 
-                        # Populate ENU messages according to REP-103. Convert from NED to ENU if needed.
-                        if self.get_parameter('imu_transform').value:
-                            # Convert NED to ENU: 
-                            #     body-fixed NED → ROS ENU: (x y z)→(x -y -z) or (x y z w)→(x -y -z w)
-                            #     local      NED → ROS ENU: (x y z)→(y x -z)  or (x y z w)→(y x -z w)
-                            orientation = Quaternion(x=quat[1], y=quat[0], z=-quat[2], w=quat[3])
-                            ang_vel = Vector3(x=gyro_raw['y'], y=gyro_raw['x'], z=-gyro_raw['z'])
-                            lin_acc = Vector3(x=acc_raw['y']*9.81, y=acc_raw['x']*9.81, z=-acc_raw['z']*9.81) # convert from g to m/s^2
-                        else:
-                            # No conversion needed
-                            orientation = Quaternion(x=quat[0], y=quat[1], z=quat[2], w=quat[3])
-                            ang_vel = Vector3(x=gyro_raw['x'], y=gyro_raw['y'], z=gyro_raw['z'])
-                            lin_acc = Vector3(x=acc_raw['x']*9.81, y=acc_raw['y']*9.81, z=acc_raw['z']*9.81) # convert from g to m/s^2
+                        # Y-axis values are negated to convert from left-hand to right-hand convention
+                        quat = quaternion_from_euler(orientation['roll'], -orientation['pitch'], orientation['yaw'])
+                        orientation = Quaternion(x=quat[0], y=quat[1], z=quat[2], w=quat[3])
+                        ang_vel = Vector3(x=gyro_raw['x'], y=-gyro_raw['y'], z=gyro_raw['z'])
+                        lin_acc = Vector3(x=acc_raw['x']*9.81, y=-acc_raw['y']*9.81, z=acc_raw['z']*9.81) # convert from g to m/s^2
 
                         sensor_msg.orientation = orientation
                         sensor_msg.orientation_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
@@ -125,12 +115,8 @@ class SenseHatPublisher(Node):
                     # magnetometer
                     elif pub_name == 'mag':
                         mag_raw = self._sensehat.get_compass_raw()
-                        if self.get_parameter('imu_transform').value:
-                            # Convert NED to ENU according to REP-103
-                            sensor_msg.magnetic_field = Vector3(x=mag_raw['y']/1e6, y=mag_raw['x']/1e6, z=-mag_raw['z']/1e6) # convert from uT to T
-                        else:
-                            # No conversion needed
-                            sensor_msg.magnetic_field = Vector3(x=mag_raw['x']/1e6, y=mag_raw['y']/1e6, z=mag_raw['z']/1e6) # convert from uT to T
+   			# Y-axis values are negated to convert from left-hand to right-hand convention
+                        sensor_msg.magnetic_field = Vector3(x=mag_raw['x']/1e6, y=-mag_raw['y']/1e6, z=mag_raw['z']/1e6) # convert from uT to T
 
                     # barometer
                     elif pub_name == 'pressure': 
