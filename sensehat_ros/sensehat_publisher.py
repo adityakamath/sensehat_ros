@@ -93,24 +93,23 @@ class SenseHatPublisher(Node):
                     sensor_msg.header = Header(stamp = self._time, frame_id = self.get_parameter('frame_id').value)
 
                 try:
-                    # imu: accelerometer + gyroscope + magnetometer
+                    # imu: accelerometer + gyroscope + magnetometer (optional)
                     if pub_name == 'imu':
                         gyro_raw = self._sensehat.get_gyroscope_raw() # Units: rad/s
                         acc_raw = self._sensehat.get_accelerometer_raw() # Units: g
-                        orientation = self._sensehat.get_orientation_radians() # Euler angles: roll, pitch, yaw in radians
 
                         # Y-axis values are negated to convert from left-hand to right-hand convention
-                        quat = quaternion_from_euler(orientation['roll'], -orientation['pitch'], orientation['yaw'])
-                        orientation = Quaternion(x=quat[0], y=quat[1], z=quat[2], w=quat[3])
-                        ang_vel = Vector3(x=gyro_raw['x'], y=-gyro_raw['y'], z=gyro_raw['z'])
-                        lin_acc = Vector3(x=acc_raw['x']*9.81, y=-acc_raw['y']*9.81, z=acc_raw['z']*9.81) # convert from g to m/s^2
-
-                        sensor_msg.orientation = orientation
-                        sensor_msg.orientation_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
-                        sensor_msg.angular_velocity = ang_vel
+                        sensor_msg.angular_velocity = Vector3(x=gyro_raw['x'], y=-gyro_raw['y'], z=gyro_raw['z'])
                         sensor_msg.angular_velocity_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
-                        sensor_msg.linear_acceleration = lin_acc
+                        
+                        sensor_msg.linear_acceleration = Vector3(x=acc_raw['x']*9.81, y=-acc_raw['y']*9.81, z=acc_raw['z']*9.81) # convert from g to m/s^2
                         sensor_msg.linear_acceleration_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]
+
+                        if self.get_parameter('en_mag').value:
+                            orientation = self._sensehat.get_orientation_radians() # Euler angles: roll, pitch, yaw in radians
+                            quat = quaternion_from_euler(orientation['roll'], -orientation['pitch'], orientation['yaw'])
+                            sensor_msg.orientation = Quaternion(x=quat[0], y=quat[1], z=quat[2], w=quat[3])
+                            sensor_msg.orientation_covariance = [0.01, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.01]                            
 
                     # magnetometer
                     elif pub_name == 'mag':
@@ -171,7 +170,7 @@ class SenseHatPublisher(Node):
                 self.get_logger().warn('Warning: Temperature enabled but Humidity/Pressure sensors disabled. Enable at least one to publish Temperature.')
             
             # configure sensor
-            self._sensehat.set_imu_config(True, True, True) # set magnetometer, gyroscope, accelerometer to true on hardware
+            self._sensehat.set_imu_config((l_mag and l_imu), l_imu, l_imu) # set magnetometer, gyroscope, an accelerometer to according to initial parameters. 
 
             # create timer
             self._timer = self.create_timer(self.get_parameter('timer_period').value, self.timer_callback)
