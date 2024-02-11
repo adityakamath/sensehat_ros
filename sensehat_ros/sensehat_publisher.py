@@ -192,17 +192,17 @@ class SenseHatPublisher(Node):
         return super().on_activate(state)
 
     def on_deactivate(self, state: State) -> TransitionCallbackReturn:      
-        self.get_logger().info('Deactivate')
+        self.get_logger().info('Deactivated')
         return super().on_deactivate(state)
 
     def on_cleanup(self, state: State) -> TransitionCallbackReturn:
         self.terminate()      
-        self.get_logger().info('Clean Up Successful')
+        self.get_logger().info('Cleaned Up')
         return TransitionCallbackReturn.SUCCESS
 
     def on_shutdown(self, state: State) -> TransitionCallbackReturn:
         self.terminate()
-        self.get_logger().info('Shut Down Successful')
+        self.get_logger().info('Shut Down')
         return TransitionCallbackReturn.SUCCESS
         
     def terminate(self):        
