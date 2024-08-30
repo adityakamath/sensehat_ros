@@ -1,4 +1,7 @@
 # sensehat_ros
+![](https://img.shields.io/badge/ROS%202%20Humble-Ubuntu%2022.04-blue) ![GitHub License](https://img.shields.io/github/license/adityakamath/pan_tilt_ros)
+ ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/kamathsblog)
+ 
 ROS 2 package for the Raspberry Pi [Sense HAT](https://www.raspberrypi.com/documentation/accessories/sense-hat.html) which includes an accelerometer, a gyroscope, a magnetometer, a barometric pressure sensor, a humidity sensor, a 5-button joystick and a 8x8 LED matrix. The [Sensor HAT v2](https://www.raspberrypi.com/products/sense-hat/) also includes a color and brightness sensor. This package provides support for both versions.
 
 Note: This implementation is a bit over-engineered, as I have been experimenting with ROS 2 [managed/lifecycle](https://design.ros2.org/articles/node_lifecycle.html) nodes using Python.
